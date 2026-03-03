@@ -1,6 +1,6 @@
 PYTHONPATH=src
 
-.PHONY: setup data nhanes rebuild train benchmark all
+.PHONY: setup data nhanes rebuild train benchmark train_dataset all
 
 setup:
 	python -m venv .venv
@@ -19,6 +19,9 @@ train:
 
 benchmark:
 	PYTHONPATH=$(PYTHONPATH) python scripts/run_multimodal_benchmark.py
+
+train_dataset:
+	PYTHONPATH=$(PYTHONPATH) python scripts/train_from_dataset_id.py --dataset-id cohort_v1
 
 rebuild:
 	PYTHONPATH=$(PYTHONPATH) python scripts/build_training_table_from_modalities.py

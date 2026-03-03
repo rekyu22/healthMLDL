@@ -24,7 +24,8 @@ healthMLDL/
 │   ├── download_nhanes_2017.py
 │   ├── import_csv_dataset.py
 │   ├── run_ml_baseline.py
-│   └── run_multimodal_benchmark.py
+│   ├── run_multimodal_benchmark.py
+│   └── train_from_dataset_id.py
 ├── src/health_mldl/
 │   ├── data/           # IO, nettoyage, split, validation
 │   ├── features/       # schema de colonnes + feature engineering
@@ -94,6 +95,16 @@ PYTHONPATH=src python scripts/build_training_table_from_modalities.py --dataset-
 ```bash
 PYTHONPATH=src python scripts/download_nhanes_2017.py
 PYTHONPATH=src python scripts/export_separated_modalities_csv.py --input-csv data/raw/nhanes_2017_core_adults_dexa.csv --dataset-id nhanes_2017
+```
+
+6. Entrainer depuis un dataset-id de modalites
+
+```bash
+# Cas complet (avec target.csv): cohort_v1
+PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id cohort_v1
+
+# Cas NHANES (pas de target.csv): cible proxy via dexa_lean_mass_index
+PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 --target-col dexa_lean_mass_index
 ```
 
 ## Sorties principales
