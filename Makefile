@@ -1,6 +1,6 @@
 PYTHONPATH=src
 
-.PHONY: setup data rebuild train benchmark all
+.PHONY: setup data nhanes rebuild train benchmark all
 
 setup:
 	python -m venv .venv
@@ -9,6 +9,10 @@ setup:
 data:
 	PYTHONPATH=$(PYTHONPATH) python scripts/generate_synthetic_dataset.py
 	PYTHONPATH=$(PYTHONPATH) python scripts/export_separated_modalities_csv.py
+
+nhanes:
+	PYTHONPATH=$(PYTHONPATH) python scripts/download_nhanes_2017.py
+	PYTHONPATH=$(PYTHONPATH) python scripts/export_separated_modalities_csv.py --input-csv data/raw/nhanes_2017_core_adults_dexa.csv --dataset-id nhanes_2017
 
 train:
 	PYTHONPATH=$(PYTHONPATH) python scripts/run_ml_baseline.py

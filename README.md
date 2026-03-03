@@ -21,6 +21,7 @@ healthMLDL/
 │   └── tables/         # resultats benchmark, missingness
 ├── scripts/
 │   ├── generate_synthetic_dataset.py
+│   ├── download_nhanes_2017.py
 │   ├── import_csv_dataset.py
 │   ├── run_ml_baseline.py
 │   └── run_multimodal_benchmark.py
@@ -86,6 +87,13 @@ PYTHONPATH=src python scripts/run_multimodal_benchmark.py
 PYTHONPATH=src python scripts/import_csv_dataset.py /chemin/vers/tes_donnees.csv --name cohort_v1.csv
 PYTHONPATH=src python scripts/export_separated_modalities_csv.py --input-csv data/raw/cohort_v1.csv --dataset-id cohort_v1
 PYTHONPATH=src python scripts/build_training_table_from_modalities.py --dataset-id cohort_v1
+```
+
+5. Telecharger NHANES 2017-2018 (clinical + DEXA) et separer en modalites
+
+```bash
+PYTHONPATH=src python scripts/download_nhanes_2017.py
+PYTHONPATH=src python scripts/export_separated_modalities_csv.py --input-csv data/raw/nhanes_2017_core_adults_dexa.csv --dataset-id nhanes_2017
 ```
 
 ## Sorties principales

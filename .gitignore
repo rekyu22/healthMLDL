@@ -8,11 +8,16 @@ venv/
 
 # Data artifacts
 data/raw/*.tmp
+data/raw/nhanes_*.csv
 data/interim/*
 data/processed/*
+data/external/*
+data/raw/modalities/nhanes_2017/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
+!data/external/.gitkeep
+!data/raw/modalities/.gitkeep
 
 # Models and reports
 models/*.joblib
