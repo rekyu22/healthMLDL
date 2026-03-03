@@ -1,34 +1,9 @@
 import argparse
 from pathlib import Path
 
-import pandas as pd
-
 from health_mldl.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
+from health_mldl.data.merge_modalities import load_dataset_from_modalities
 from health_mldl.features.schema import PATIENT_ID_COL
-
-
-def read_modality_csv(base_dir: Path, filename: str) -> pd.DataFrame:
-    path = base_dir / filename
-    if not path.exists():
-        raise FileNotFoundError(f"Fichier manquant: {path}")
-    return pd.read_csv(path)
-
-
-def merge_modalities(modalities_dir: Path) -> pd.DataFrame:
-    clinical = read_modality_csv(modalities_dir, "clinical.csv")
-    ultrasound = read_modality_csv(modalities_dir, "ultrasound.csv")
-    mri = read_modality_csv(modalities_dir, "mri.csv")
-    dexa = read_modality_csv(modalities_dir, "dexa.csv")
-    microwave = read_modality_csv(modalities_dir, "microwave.csv")
-    target = read_modality_csv(modalities_dir, "target.csv")
-
-    df = clinical.merge(ultrasound, on=PATIENT_ID_COL, how="inner")
-    df = df.merge(mri, on=PATIENT_ID_COL, how="inner")
-    df = df.merge(dexa, on=PATIENT_ID_COL, how="inner")
-    df = df.merge(microwave, on=PATIENT_ID_COL, how="inner")
-    df = df.merge(target, on=PATIENT_ID_COL, how="inner")
-
-    return df
 
 
 def main() -> None:
@@ -61,7 +36,7 @@ def main() -> None:
     if not modalities_dir.exists():
         raise FileNotFoundError(f"Dossier introuvable: {modalities_dir}")
 
-    merged = merge_modalities(modalities_dir)
+    merged = load_dataset_from_modalities(modalities_dir, patient_id_col=PATIENT_ID_COL)
 
     if args.output:
         output_path = Path(args.output)

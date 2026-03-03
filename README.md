@@ -118,6 +118,7 @@ PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 
 - `data/raw/modalities/target.csv`
 - `reports/tables/missingness_summary.csv`
 - `reports/tables/benchmark_results.csv`
+- `reports/tables/quality_report_<dataset>__<target>.json`
 - `reports/benchmark_summary.json`
 - `models/best_model.joblib`
 

@@ -22,6 +22,9 @@ data/raw/modalities/nhanes_2017/*
 # Models and reports
 models/*.joblib
 reports/figures/*.png
+reports/benchmark_summary_*.json
+reports/tables/benchmark_results_*.csv
+reports/tables/quality_report_*.json
 
 # Jupyter
 .ipynb_checkpoints/

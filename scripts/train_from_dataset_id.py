@@ -11,6 +11,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from health_mldl.config import MODELS_DIR, RAW_DATA_DIR, REPORTS_DIR, TABLES_DIR
+from health_mldl.data.merge_modalities import load_dataset_from_modalities
+from health_mldl.data.quality import run_quality_checks
 from health_mldl.evaluation.cv import run_regression_cv
 from health_mldl.evaluation.metrics import regression_metrics
 from health_mldl.features.build_features import add_simple_interactions
@@ -22,30 +24,6 @@ from health_mldl.modeling.model_zoo import (
 )
 from health_mldl.modeling.multimodal_stacking import build_multimodal_stacking_pipeline
 from health_mldl.utils.serialization import save_joblib, save_json
-
-
-def load_dataset_from_modalities(modalities_dir: Path) -> pd.DataFrame:
-    csv_files = sorted([p for p in modalities_dir.glob("*.csv") if p.is_file()])
-    if not csv_files:
-        raise FileNotFoundError(f"Aucun CSV trouve dans: {modalities_dir}")
-
-    frames: list[pd.DataFrame] = []
-    for path in csv_files:
-        df = pd.read_csv(path)
-        if PATIENT_ID_COL not in df.columns:
-            raise ValueError(f"{path.name}: colonne '{PATIENT_ID_COL}' manquante")
-        frames.append(df)
-
-    merged = frames[0]
-    for df in frames[1:]:
-        # Avoid duplicate non-key columns during merge.
-        overlap = [c for c in df.columns if c in merged.columns and c != PATIENT_ID_COL]
-        if overlap:
-            df = df.drop(columns=overlap)
-        merged = merged.merge(df, on=PATIENT_ID_COL, how="inner")
-
-    return merged
-
 
 def split_xy(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, pd.Series]:
     if target_col not in df.columns:
@@ -126,7 +104,12 @@ def main() -> None:
     if not modalities_dir.exists():
         raise FileNotFoundError(f"Dossier dataset introuvable: {modalities_dir}")
 
-    merged = load_dataset_from_modalities(modalities_dir)
+    merged = load_dataset_from_modalities(modalities_dir, patient_id_col=PATIENT_ID_COL)
+    quality_report = run_quality_checks(
+        merged,
+        patient_id_col=PATIENT_ID_COL,
+        target_col=args.target_col,
+    )
     clean_df = generic_cleaning(merged, target_col=args.target_col)
     feat_df = add_simple_interactions(clean_df)
 
@@ -172,8 +155,10 @@ def main() -> None:
     safe_suffix = suffix.replace("/", "_").replace(" ", "_")
 
     table_out = TABLES_DIR / f"benchmark_results_{safe_suffix}.csv"
+    quality_out = TABLES_DIR / f"quality_report_{safe_suffix}.json"
     table_out.parent.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(table_out, index=False)
+    save_json(quality_report.to_dict(), quality_out)
 
     best_name = results_df.iloc[0]["model"]
     if best_name == "multimodal_stacking" and multimodal is not None:
@@ -206,6 +191,7 @@ def main() -> None:
     print(f"Target: {args.target_col}")
     print(results_df[["model", "cv_rmse_mean", "cv_r2_mean", "rmse", "r2"]])
     print(f"Saved: {table_out}")
+    print(f"Saved: {quality_out}")
     print(f"Saved: {model_out}")
     print(f"Saved: {summary_out}")
 
