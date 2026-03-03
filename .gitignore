@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+.env
+
+# Data artifacts
+data/raw/*.tmp
+data/interim/*
+data/processed/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Models and reports
+models/*.joblib
+reports/figures/*.png
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
