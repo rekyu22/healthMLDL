@@ -25,7 +25,8 @@ healthMLDL/
 │   ├── import_csv_dataset.py
 │   ├── run_ml_baseline.py
 │   ├── run_multimodal_benchmark.py
-│   └── train_from_dataset_id.py
+│   ├── train_from_dataset_id.py
+│   └── error_analysis_from_predictions.py
 ├── src/health_mldl/
 │   ├── data/           # IO, nettoyage, split, validation
 │   ├── features/       # schema de colonnes + feature engineering
@@ -101,10 +102,16 @@ PYTHONPATH=src python scripts/export_separated_modalities_csv.py --input-csv dat
 
 ```bash
 # Cas complet (avec target.csv): cohort_v1
-PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id cohort_v1 --save-predictions --save-feature-importance
+PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id cohort_v1 --stratify-age --save-predictions --save-feature-importance
 
 # Cas NHANES (pas de target.csv): cible proxy via dexa_lean_mass_index
-PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 --target-col dexa_lean_mass_index --save-predictions --save-feature-importance
+PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 --target-col dexa_lean_mass_index --stratify-age --save-predictions --save-feature-importance
+```
+
+7. Analyser les erreurs par sous-groupes cliniques
+
+```bash
+PYTHONPATH=src python scripts/error_analysis_from_predictions.py --dataset-id cohort_v1 --target-col muscle_deterioration_score
 ```
 
 ## Sorties principales
@@ -121,6 +128,9 @@ PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 
 - `reports/tables/quality_report_<dataset>__<target>.json`
 - `reports/tables/predictions_<dataset>__<target>.csv`
 - `reports/tables/feature_importance_<dataset>__<target>.csv`
+- `reports/tables/error_by_sex_<dataset>__<target>.csv`
+- `reports/tables/error_by_age_bin_<dataset>__<target>.csv`
+- `reports/tables/error_by_bmi_bin_<dataset>__<target>.csv`
 - `reports/benchmark_summary.json`
 - `models/best_model.joblib`
 

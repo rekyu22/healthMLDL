@@ -14,7 +14,7 @@ from sklearn.inspection import permutation_importance
 from health_mldl.config import MODELS_DIR, RAW_DATA_DIR, REPORTS_DIR, TABLES_DIR
 from health_mldl.data.merge_modalities import load_dataset_from_modalities
 from health_mldl.data.quality import run_quality_checks
-from health_mldl.evaluation.cv import run_regression_cv
+from health_mldl.evaluation.cv import run_regression_cv, run_regression_cv_age_stratified
 from health_mldl.evaluation.metrics import regression_metrics
 from health_mldl.features.build_features import add_simple_interactions
 from health_mldl.features.schema import MODALITY_BLOCKS, PATIENT_ID_COL, TARGET_COL
@@ -61,13 +61,26 @@ def generic_cleaning(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
     return data
 
 
-def _fit_eval_single(name: str, pipeline, x_train, y_train, x_test, y_test) -> dict:
+def _fit_eval_single(
+    name: str,
+    pipeline,
+    x_train,
+    y_train,
+    x_test,
+    y_test,
+    stratify_age: bool,
+) -> dict:
     pipeline.fit(x_train, y_train)
     pred = pipeline.predict(x_test)
+    cv_metrics = (
+        run_regression_cv_age_stratified(pipeline, x_train, y_train)
+        if stratify_age and "age" in x_train.columns
+        else run_regression_cv(pipeline, x_train, y_train)
+    )
     return {
         "model": name,
         **regression_metrics(y_test, pred),
-        **run_regression_cv(pipeline, x_train, y_train),
+        **cv_metrics,
     }
 
 
@@ -130,6 +143,11 @@ def main() -> None:
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument(
+        "--stratify-age",
+        action="store_true",
+        help="Stratifie le split train/test et la CV selon des bins d'age si possible.",
+    )
+    parser.add_argument(
         "--save-predictions",
         action="store_true",
         help="Sauvegarde les predictions sur le test set.",
@@ -159,20 +177,63 @@ def main() -> None:
     if len(x) < 100:
         print(f"Warning: dataset petit pour benchmark robuste (n={len(x)})")
 
+    stratify_bins = None
+    if args.stratify_age and "age" in x.columns:
+        age_bins = pd.qcut(x["age"], q=min(5, x["age"].nunique()), duplicates="drop")
+        if age_bins.nunique() >= 2:
+            stratify_bins = age_bins
+        else:
+            print("Info: stratification age desactivee (bins insuffisants)")
+
     x_train, x_test, y_train, y_test, _pid_train, pid_test = train_test_split(
-        x, y, patient_ids, test_size=args.test_size, random_state=args.random_state
+        x,
+        y,
+        patient_ids,
+        test_size=args.test_size,
+        random_state=args.random_state,
+        stratify=stratify_bins,
     )
 
     benchmarks: list[dict] = []
 
     elastic = build_elastic_net_pipeline(x_train, random_state=args.random_state)
-    benchmarks.append(_fit_eval_single("elastic_net", elastic, x_train, y_train, x_test, y_test))
+    benchmarks.append(
+        _fit_eval_single(
+            "elastic_net",
+            elastic,
+            x_train,
+            y_train,
+            x_test,
+            y_test,
+            stratify_age=args.stratify_age,
+        )
+    )
 
     rf = build_random_forest_pipeline(x_train, random_state=args.random_state)
-    benchmarks.append(_fit_eval_single("random_forest", rf, x_train, y_train, x_test, y_test))
+    benchmarks.append(
+        _fit_eval_single(
+            "random_forest",
+            rf,
+            x_train,
+            y_train,
+            x_test,
+            y_test,
+            stratify_age=args.stratify_age,
+        )
+    )
 
     gbdt = build_gradient_boosting_pipeline(x_train, random_state=args.random_state)
-    benchmarks.append(_fit_eval_single("gradient_boosting", gbdt, x_train, y_train, x_test, y_test))
+    benchmarks.append(
+        _fit_eval_single(
+            "gradient_boosting",
+            gbdt,
+            x_train,
+            y_train,
+            x_test,
+            y_test,
+            stratify_age=args.stratify_age,
+        )
+    )
 
     multimodal = None
     if has_full_multimodal_columns(x_train):
@@ -183,7 +244,11 @@ def main() -> None:
             {
                 "model": "multimodal_stacking",
                 **regression_metrics(y_test, multimodal_pred),
-                **run_regression_cv(multimodal.pipeline, x_train, y_train),
+                **(
+                    run_regression_cv_age_stratified(multimodal.pipeline, x_train, y_train)
+                    if args.stratify_age and "age" in x_train.columns
+                    else run_regression_cv(multimodal.pipeline, x_train, y_train)
+                ),
                 "modalities": ",".join(multimodal.base_modalities),
             }
         )
@@ -221,6 +286,7 @@ def main() -> None:
         {
             "dataset_id": args.dataset_id,
             "target_col": args.target_col,
+            "stratify_age": bool(args.stratify_age),
             "n_rows": int(len(x)),
             "n_features": int(x.shape[1]),
             "best_model": best_name,

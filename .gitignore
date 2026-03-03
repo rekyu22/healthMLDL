@@ -27,6 +27,7 @@ reports/tables/benchmark_results_*.csv
 reports/tables/quality_report_*.json
 reports/tables/predictions_*.csv
 reports/tables/feature_importance_*.csv
+reports/tables/error_by_*.csv
 
 # Jupyter
 .ipynb_checkpoints/
