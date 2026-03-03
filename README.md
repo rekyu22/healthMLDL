@@ -101,10 +101,10 @@ PYTHONPATH=src python scripts/export_separated_modalities_csv.py --input-csv dat
 
 ```bash
 # Cas complet (avec target.csv): cohort_v1
-PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id cohort_v1
+PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id cohort_v1 --save-predictions --save-feature-importance
 
 # Cas NHANES (pas de target.csv): cible proxy via dexa_lean_mass_index
-PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 --target-col dexa_lean_mass_index
+PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 --target-col dexa_lean_mass_index --save-predictions --save-feature-importance
 ```
 
 ## Sorties principales
@@ -119,6 +119,8 @@ PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 
 - `reports/tables/missingness_summary.csv`
 - `reports/tables/benchmark_results.csv`
 - `reports/tables/quality_report_<dataset>__<target>.json`
+- `reports/tables/predictions_<dataset>__<target>.csv`
+- `reports/tables/feature_importance_<dataset>__<target>.csv`
 - `reports/benchmark_summary.json`
 - `models/best_model.joblib`
 

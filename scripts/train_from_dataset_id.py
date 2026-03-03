@@ -9,6 +9,7 @@ os.environ.setdefault("MKL_NUM_THREADS", "1")
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.inspection import permutation_importance
 
 from health_mldl.config import MODELS_DIR, RAW_DATA_DIR, REPORTS_DIR, TABLES_DIR
 from health_mldl.data.merge_modalities import load_dataset_from_modalities
@@ -25,20 +26,22 @@ from health_mldl.modeling.model_zoo import (
 from health_mldl.modeling.multimodal_stacking import build_multimodal_stacking_pipeline
 from health_mldl.utils.serialization import save_joblib, save_json
 
-def split_xy(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, pd.Series]:
+def split_xy(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     if target_col not in df.columns:
         raise ValueError(f"Target '{target_col}' absente de la table fusionnee")
 
     x = df.drop(columns=[target_col, PATIENT_ID_COL], errors="ignore")
     y = pd.to_numeric(df[target_col], errors="coerce")
+    patient_ids = df[PATIENT_ID_COL] if PATIENT_ID_COL in df.columns else pd.Series(range(len(df)))
 
     mask = y.notna()
     x = x.loc[mask].copy()
     y = y.loc[mask].copy()
+    patient_ids = patient_ids.loc[mask].copy()
 
     if x.empty:
         raise ValueError("Aucune ligne exploitable apres filtrage de la cible")
-    return x, y
+    return x, y, patient_ids
 
 
 def generic_cleaning(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
@@ -79,6 +82,34 @@ def has_full_multimodal_columns(x: pd.DataFrame) -> bool:
     return all(col in x.columns for col in required)
 
 
+def export_permutation_importance(
+    model,
+    x_test: pd.DataFrame,
+    y_test: pd.Series,
+    output_path: Path,
+    random_state: int,
+    n_repeats: int = 10,
+) -> None:
+    imp = permutation_importance(
+        model,
+        x_test,
+        y_test,
+        scoring="neg_root_mean_squared_error",
+        n_repeats=n_repeats,
+        random_state=random_state,
+        n_jobs=1,
+    )
+    imp_df = pd.DataFrame(
+        {
+            "feature": x_test.columns,
+            "importance_mean": imp.importances_mean,
+            "importance_std": imp.importances_std,
+        }
+    ).sort_values("importance_mean", ascending=False)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    imp_df.to_csv(output_path, index=False)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Train/evaluate models from modality-separated CSVs using dataset-id."
@@ -98,6 +129,16 @@ def main() -> None:
     )
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--random-state", type=int, default=42)
+    parser.add_argument(
+        "--save-predictions",
+        action="store_true",
+        help="Sauvegarde les predictions sur le test set.",
+    )
+    parser.add_argument(
+        "--save-feature-importance",
+        action="store_true",
+        help="Sauvegarde la permutation importance du meilleur modele.",
+    )
     args = parser.parse_args()
 
     modalities_dir = Path(args.modalities_root) / args.dataset_id
@@ -113,13 +154,13 @@ def main() -> None:
     clean_df = generic_cleaning(merged, target_col=args.target_col)
     feat_df = add_simple_interactions(clean_df)
 
-    x, y = split_xy(feat_df, target_col=args.target_col)
+    x, y, patient_ids = split_xy(feat_df, target_col=args.target_col)
 
     if len(x) < 100:
         print(f"Warning: dataset petit pour benchmark robuste (n={len(x)})")
 
-    x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=args.test_size, random_state=args.random_state
+    x_train, x_test, y_train, y_test, _pid_train, pid_test = train_test_split(
+        x, y, patient_ids, test_size=args.test_size, random_state=args.random_state
     )
 
     benchmarks: list[dict] = []
@@ -172,6 +213,8 @@ def main() -> None:
 
     model_out = MODELS_DIR / f"best_model_{safe_suffix}.joblib"
     summary_out = REPORTS_DIR / f"benchmark_summary_{safe_suffix}.json"
+    pred_out = TABLES_DIR / f"predictions_{safe_suffix}.csv"
+    importance_out = TABLES_DIR / f"feature_importance_{safe_suffix}.csv"
 
     save_joblib(best_model, model_out)
     save_json(
@@ -186,6 +229,28 @@ def main() -> None:
         summary_out,
     )
 
+    if args.save_predictions:
+        y_pred = best_model.predict(x_test)
+        pred_df = pd.DataFrame(
+            {
+                PATIENT_ID_COL: pid_test.values,
+                "y_true": y_test.values,
+                "y_pred": y_pred,
+            }
+        )
+        pred_df["error"] = pred_df["y_pred"] - pred_df["y_true"]
+        pred_df["abs_error"] = pred_df["error"].abs()
+        pred_df.sort_values("abs_error", ascending=False).to_csv(pred_out, index=False)
+
+    if args.save_feature_importance:
+        export_permutation_importance(
+            best_model,
+            x_test=x_test,
+            y_test=y_test,
+            output_path=importance_out,
+            random_state=args.random_state,
+        )
+
     print("Training from dataset-id complete")
     print(f"Dataset: {args.dataset_id}")
     print(f"Target: {args.target_col}")
@@ -194,6 +259,10 @@ def main() -> None:
     print(f"Saved: {quality_out}")
     print(f"Saved: {model_out}")
     print(f"Saved: {summary_out}")
+    if args.save_predictions:
+        print(f"Saved: {pred_out}")
+    if args.save_feature_importance:
+        print(f"Saved: {importance_out}")
 
 
 if __name__ == "__main__":

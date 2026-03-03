@@ -21,7 +21,7 @@ benchmark:
 	PYTHONPATH=$(PYTHONPATH) python scripts/run_multimodal_benchmark.py
 
 train_dataset:
-	PYTHONPATH=$(PYTHONPATH) python scripts/train_from_dataset_id.py --dataset-id cohort_v1
+	PYTHONPATH=$(PYTHONPATH) python scripts/train_from_dataset_id.py --dataset-id cohort_v1 --save-predictions --save-feature-importance
 
 rebuild:
 	PYTHONPATH=$(PYTHONPATH) python scripts/build_training_table_from_modalities.py
