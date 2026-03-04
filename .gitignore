@@ -30,6 +30,12 @@ reports/tables/feature_importance_*.csv
 reports/tables/error_by_*.csv
 reports/tables/run_comparison.csv
 reports/tables/model_comparison.csv
+reports/tables/dl_history_*.csv
+reports/tables/dl_predictions_*.csv
+reports/tables/dl_quality_report_*.json
+reports/dl_summary_*.json
+models/best_dl_model_*.pt
+models/dl_preprocessor_*.joblib
 
 # Jupyter
 .ipynb_checkpoints/

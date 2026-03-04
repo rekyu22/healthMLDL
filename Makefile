@@ -1,6 +1,6 @@
 PYTHONPATH=src
 
-.PHONY: setup data nhanes rebuild train benchmark train_dataset analyze_errors compare_runs all
+.PHONY: setup data nhanes rebuild train benchmark train_dataset train_dl analyze_errors compare_runs all
 
 setup:
 	python -m venv .venv
@@ -22,6 +22,9 @@ benchmark:
 
 train_dataset:
 	PYTHONPATH=$(PYTHONPATH) python scripts/train_from_dataset_id.py --dataset-id cohort_v1 --stratify-age --save-predictions --save-feature-importance
+
+train_dl:
+	PYTHONPATH=$(PYTHONPATH) python scripts/train_dl_from_dataset_id.py --dataset-id cohort_v1
 
 analyze_errors:
 	PYTHONPATH=$(PYTHONPATH) python scripts/error_analysis_from_predictions.py --dataset-id cohort_v1 --target-col muscle_deterioration_score

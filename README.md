@@ -27,7 +27,8 @@ healthMLDL/
 │   ├── run_multimodal_benchmark.py
 │   ├── train_from_dataset_id.py
 │   ├── error_analysis_from_predictions.py
-│   └── compare_runs.py
+│   ├── compare_runs.py
+│   └── train_dl_from_dataset_id.py
 ├── src/health_mldl/
 │   ├── data/           # IO, nettoyage, split, validation
 │   ├── features/       # schema de colonnes + feature engineering
@@ -121,6 +122,12 @@ PYTHONPATH=src python scripts/error_analysis_from_predictions.py --dataset-id co
 PYTHONPATH=src python scripts/compare_runs.py
 ```
 
+9. Entrainer un modele DL tabulaire (PyTorch)
+
+```bash
+PYTHONPATH=src python scripts/train_dl_from_dataset_id.py --dataset-id cohort_v1
+```
+
 ## Sorties principales
 
 - `data/processed/training_table.csv`
@@ -140,6 +147,12 @@ PYTHONPATH=src python scripts/compare_runs.py
 - `reports/tables/error_by_bmi_bin_<dataset>__<target>.csv`
 - `reports/tables/run_comparison.csv`
 - `reports/tables/model_comparison.csv`
+- `reports/tables/dl_history_<dataset>__<target>.csv`
+- `reports/tables/dl_predictions_<dataset>__<target>.csv`
+- `reports/tables/dl_quality_report_<dataset>__<target>.json`
+- `reports/dl_summary_<dataset>__<target>.json`
+- `models/best_dl_model_<dataset>__<target>.pt`
+- `models/dl_preprocessor_<dataset>__<target>.joblib`
 - `reports/benchmark_summary.json`
 - `models/best_model.joblib`
 
@@ -149,5 +162,6 @@ PYTHONPATH=src python scripts/compare_runs.py
 - `RandomForest`: baseline non lineaire robuste
 - `GradientBoosting`: boosting performant (version sklearn portable)
 - `Multimodal Stacking`: fusion par modalite (clinical, US, MRI, DEXA, MW)
+- `Tabular MLP (PyTorch)`: baseline DL tabulaire
 
 Note: XGBoost/LightGBM/CatBoost peuvent etre ajoutes ensuite comme extensions.
