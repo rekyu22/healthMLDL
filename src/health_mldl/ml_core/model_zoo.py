@@ -6,7 +6,7 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import ElasticNet
 from sklearn.pipeline import Pipeline
 
-from health_mldl.modeling.common import make_pipeline
+from health_mldl.ml_core.common import make_pipeline
 
 
 def build_elastic_net_pipeline(x, random_state: int = 42) -> Pipeline:

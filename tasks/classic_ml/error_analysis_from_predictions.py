@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from health_mldl.config import RAW_DATA_DIR, TABLES_DIR
+from health_mldl.config import RAW_DATA_DIR, ML_TABLES_DIR
 from health_mldl.features.schema import PATIENT_ID_COL
 
 
@@ -56,7 +56,7 @@ def main() -> None:
     pred_path = (
         Path(args.predictions_path)
         if args.predictions_path
-        else TABLES_DIR / f"predictions_{suffix}.csv"
+        else ML_TABLES_DIR / f"predictions_{suffix}.csv"
     )
 
     if not pred_path.exists():
@@ -74,7 +74,7 @@ def main() -> None:
     if "error" not in merged.columns:
         merged["error"] = merged["y_pred"] - merged["y_true"]
 
-    out_base = TABLES_DIR
+    out_base = ML_TABLES_DIR
     out_base.mkdir(parents=True, exist_ok=True)
 
     by_sex = pd.DataFrame()

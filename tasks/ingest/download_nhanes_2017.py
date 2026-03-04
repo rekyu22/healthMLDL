@@ -152,7 +152,7 @@ def main() -> None:
     print(f"Curated NHANES CSV written: {curated_csv}")
     print(f"Curated shape (age>=20 with DEXA): {curated.shape}")
     print(
-        "Next: PYTHONPATH=src python scripts/export_separated_modalities_csv.py "
+        "Next: PYTHONPATH=src python tasks/ingest/export_separated_modalities_csv.py "
         "--input-csv data/raw/nhanes_2017_core_adults_dexa.csv --dataset-id nhanes_2017"
     )
 

@@ -1,38 +1,44 @@
 PYTHONPATH=src
 
-.PHONY: setup data nhanes rebuild train benchmark train_dataset train_dl analyze_errors compare_runs all
+.PHONY: setup \
+	data_synth data_import data_nhanes data_rebuild \
+	ml_baseline ml_benchmark ml_train ml_error ml_compare \
+	dl_train all
 
 setup:
 	python -m venv .venv
 	. .venv/bin/activate && pip install -r requirements.txt
 
-data:
-	PYTHONPATH=$(PYTHONPATH) python scripts/generate_synthetic_dataset.py
-	PYTHONPATH=$(PYTHONPATH) python scripts/export_separated_modalities_csv.py
+data_synth:
+	PYTHONPATH=$(PYTHONPATH) python tasks/ingest/generate_synthetic_dataset.py
+	PYTHONPATH=$(PYTHONPATH) python tasks/ingest/export_separated_modalities_csv.py
 
-nhanes:
-	PYTHONPATH=$(PYTHONPATH) python scripts/download_nhanes_2017.py
-	PYTHONPATH=$(PYTHONPATH) python scripts/export_separated_modalities_csv.py --input-csv data/raw/nhanes_2017_core_adults_dexa.csv --dataset-id nhanes_2017
+data_nhanes:
+	PYTHONPATH=$(PYTHONPATH) python tasks/ingest/download_nhanes_2017.py
+	PYTHONPATH=$(PYTHONPATH) python tasks/ingest/export_separated_modalities_csv.py --input-csv data/raw/nhanes_2017_core_adults_dexa.csv --dataset-id nhanes_2017
 
-train:
-	PYTHONPATH=$(PYTHONPATH) python scripts/run_ml_baseline.py
+data_import:
+	@echo "Usage: PYTHONPATH=src python tasks/ingest/import_csv_dataset.py /path/to/file.csv --name cohort_v1.csv"
 
-benchmark:
-	PYTHONPATH=$(PYTHONPATH) python scripts/run_multimodal_benchmark.py
+data_rebuild:
+	PYTHONPATH=$(PYTHONPATH) python tasks/ingest/build_training_table_from_modalities.py --dataset-id cohort_v1
 
-train_dataset:
-	PYTHONPATH=$(PYTHONPATH) python scripts/train_from_dataset_id.py --dataset-id cohort_v1 --stratify-age --save-predictions --save-feature-importance
+ml_baseline:
+	PYTHONPATH=$(PYTHONPATH) python tasks/classic_ml/run_ml_baseline.py
 
-train_dl:
-	PYTHONPATH=$(PYTHONPATH) python scripts/train_dl_from_dataset_id.py --dataset-id cohort_v1
+ml_benchmark:
+	PYTHONPATH=$(PYTHONPATH) python tasks/classic_ml/run_multimodal_benchmark.py
 
-analyze_errors:
-	PYTHONPATH=$(PYTHONPATH) python scripts/error_analysis_from_predictions.py --dataset-id cohort_v1 --target-col muscle_deterioration_score
+ml_train:
+	PYTHONPATH=$(PYTHONPATH) python tasks/classic_ml/train_from_dataset_id.py --dataset-id cohort_v1 --stratify-age --save-predictions --save-feature-importance
 
-compare_runs:
-	PYTHONPATH=$(PYTHONPATH) python scripts/compare_runs.py
+ml_error:
+	PYTHONPATH=$(PYTHONPATH) python tasks/classic_ml/error_analysis_from_predictions.py --dataset-id cohort_v1 --target-col muscle_deterioration_score
 
-rebuild:
-	PYTHONPATH=$(PYTHONPATH) python scripts/build_training_table_from_modalities.py
+ml_compare:
+	PYTHONPATH=$(PYTHONPATH) python tasks/classic_ml/compare_runs.py
 
-all: data benchmark
+dl_train:
+	PYTHONPATH=$(PYTHONPATH) python tasks/deep_learning/train_dl_from_dataset_id.py --dataset-id cohort_v1
+
+all: data_synth ml_benchmark

@@ -19,23 +19,26 @@ data/raw/modalities/nhanes_2017/*
 !data/external/.gitkeep
 !data/raw/modalities/.gitkeep
 
-# Models and reports
-models/*.joblib
-reports/figures/*.png
-reports/benchmark_summary_*.json
-reports/tables/benchmark_results_*.csv
-reports/tables/quality_report_*.json
-reports/tables/predictions_*.csv
-reports/tables/feature_importance_*.csv
-reports/tables/error_by_*.csv
-reports/tables/run_comparison.csv
-reports/tables/model_comparison.csv
-reports/tables/dl_history_*.csv
-reports/tables/dl_predictions_*.csv
-reports/tables/dl_quality_report_*.json
-reports/dl_summary_*.json
-models/best_dl_model_*.pt
-models/dl_preprocessor_*.joblib
+# ML outputs
+artifacts/ml/*.joblib
+reports/ml/*.json
+reports/ml/figures/*.png
+reports/ml/tables/*.csv
+reports/ml/tables/*.json
+
+# DL outputs
+artifacts/dl/*.pt
+artifacts/dl/*.joblib
+reports/dl/*.json
+reports/dl/tables/*.csv
+reports/dl/tables/*.json
+
+# Keep placeholders
+!artifacts/ml/.gitkeep
+!artifacts/dl/.gitkeep
+!reports/ml/figures/.gitkeep
+!reports/ml/tables/.gitkeep
+!reports/dl/tables/.gitkeep
 
 # Jupyter
 .ipynb_checkpoints/

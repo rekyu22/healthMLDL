@@ -11,19 +11,19 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.inspection import permutation_importance
 
-from health_mldl.config import MODELS_DIR, RAW_DATA_DIR, REPORTS_DIR, TABLES_DIR
+from health_mldl.config import ML_ARTIFACTS_DIR, RAW_DATA_DIR, ML_REPORTS_DIR, ML_TABLES_DIR
 from health_mldl.data.merge_modalities import load_dataset_from_modalities
 from health_mldl.data.quality import run_quality_checks
 from health_mldl.evaluation.cv import run_regression_cv, run_regression_cv_age_stratified
 from health_mldl.evaluation.metrics import regression_metrics
 from health_mldl.features.build_features import add_simple_interactions
 from health_mldl.features.schema import MODALITY_BLOCKS, PATIENT_ID_COL, TARGET_COL
-from health_mldl.modeling.model_zoo import (
+from health_mldl.ml_core.model_zoo import (
     build_elastic_net_pipeline,
     build_gradient_boosting_pipeline,
     build_random_forest_pipeline,
 )
-from health_mldl.modeling.multimodal_stacking import build_multimodal_stacking_pipeline
+from health_mldl.ml_core.multimodal_stacking import build_multimodal_stacking_pipeline
 from health_mldl.utils.serialization import save_joblib, save_json
 
 def split_xy(df: pd.DataFrame, target_col: str) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
@@ -260,8 +260,8 @@ def main() -> None:
     suffix = f"{args.dataset_id}__{args.target_col}"
     safe_suffix = suffix.replace("/", "_").replace(" ", "_")
 
-    table_out = TABLES_DIR / f"benchmark_results_{safe_suffix}.csv"
-    quality_out = TABLES_DIR / f"quality_report_{safe_suffix}.json"
+    table_out = ML_TABLES_DIR / f"benchmark_results_{safe_suffix}.csv"
+    quality_out = ML_TABLES_DIR / f"quality_report_{safe_suffix}.json"
     table_out.parent.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(table_out, index=False)
     save_json(quality_report.to_dict(), quality_out)
@@ -276,10 +276,10 @@ def main() -> None:
     else:
         best_model = elastic
 
-    model_out = MODELS_DIR / f"best_model_{safe_suffix}.joblib"
-    summary_out = REPORTS_DIR / f"benchmark_summary_{safe_suffix}.json"
-    pred_out = TABLES_DIR / f"predictions_{safe_suffix}.csv"
-    importance_out = TABLES_DIR / f"feature_importance_{safe_suffix}.csv"
+    model_out = ML_ARTIFACTS_DIR / f"best_model_{safe_suffix}.joblib"
+    summary_out = ML_REPORTS_DIR / f"benchmark_summary_{safe_suffix}.json"
+    pred_out = ML_TABLES_DIR / f"predictions_{safe_suffix}.csv"
+    importance_out = ML_TABLES_DIR / f"feature_importance_{safe_suffix}.csv"
 
     save_joblib(best_model, model_out)
     save_json(

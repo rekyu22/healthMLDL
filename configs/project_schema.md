@@ -4,9 +4,9 @@
 1. `data/raw`: depot brut des cohortes
 2. `data/interim`: nettoyages, controles qualite, imputations initiales
 3. `data/processed`: table finale modele
-4. `scripts/run_multimodal_benchmark.py`: benchmark + CV + selection
-5. `models/`: meilleur modele serialise
-6. `reports/tables`: resultats comparatifs
+4. `tasks/classic_ml/run_multimodal_benchmark.py`: benchmark + CV + selection
+5. `artifacts/`: meilleur modele serialise
+6. `reports/ml/tables`: resultats comparatifs ML
 
 ## Blocs de modalites
 - clinical: age, bmi, sex, physical_activity_score, inflammation_marker

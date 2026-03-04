@@ -13,7 +13,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from health_mldl.config import MODELS_DIR, RAW_DATA_DIR, REPORTS_DIR, TABLES_DIR
+from health_mldl.config import DL_ARTIFACTS_DIR, RAW_DATA_DIR, DL_REPORTS_DIR, DL_TABLES_DIR
 from health_mldl.data.merge_modalities import load_dataset_from_modalities
 from health_mldl.data.quality import run_quality_checks
 from health_mldl.evaluation.metrics import regression_metrics
@@ -66,7 +66,7 @@ def main() -> None:
             "PyTorch non installe. Lance: pip install torch (ou pip install -r requirements.txt)"
         ) from exc
 
-    from health_mldl.modeling.dl_tabular import (
+    from health_mldl.dl_core.dl_tabular import (
         TabularMLPRegressor,
         evaluate_mse,
         make_regression_loader,
@@ -142,12 +142,12 @@ def main() -> None:
     metrics = regression_metrics(y_test_arr, y_pred)
 
     suffix = f"{args.dataset_id}__{args.target_col}".replace("/", "_").replace(" ", "_")
-    model_path = MODELS_DIR / f"best_dl_model_{suffix}.pt"
-    preproc_path = MODELS_DIR / f"dl_preprocessor_{suffix}.joblib"
-    summary_path = REPORTS_DIR / f"dl_summary_{suffix}.json"
-    history_path = TABLES_DIR / f"dl_history_{suffix}.csv"
-    pred_path = TABLES_DIR / f"dl_predictions_{suffix}.csv"
-    quality_path = TABLES_DIR / f"dl_quality_report_{suffix}.json"
+    model_path = DL_ARTIFACTS_DIR / f"best_dl_model_{suffix}.pt"
+    preproc_path = DL_ARTIFACTS_DIR / f"dl_preprocessor_{suffix}.joblib"
+    summary_path = DL_REPORTS_DIR / f"dl_summary_{suffix}.json"
+    history_path = DL_TABLES_DIR / f"dl_history_{suffix}.csv"
+    pred_path = DL_TABLES_DIR / f"dl_predictions_{suffix}.csv"
+    quality_path = DL_TABLES_DIR / f"dl_quality_report_{suffix}.json"
 
     model_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), model_path)

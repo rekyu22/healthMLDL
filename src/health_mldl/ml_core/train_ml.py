@@ -1,8 +1,8 @@
 """Legacy compatibility wrappers.
 
 Prefer using:
-- health_mldl.modeling.model_zoo
-- health_mldl.modeling.multimodal_stacking
+- health_mldl.ml_core.model_zoo
+- health_mldl.ml_core.multimodal_stacking
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from sklearn.pipeline import Pipeline
 
-from health_mldl.modeling.model_zoo import build_random_forest_pipeline
+from health_mldl.ml_core.model_zoo import build_random_forest_pipeline
 from health_mldl.utils.serialization import save_joblib
 
 

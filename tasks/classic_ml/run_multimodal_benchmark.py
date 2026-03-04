@@ -8,19 +8,19 @@ os.environ.setdefault("MKL_NUM_THREADS", "1")
 
 import pandas as pd
 
-from health_mldl.config import MODELS_DIR, RAW_DATA_DIR, REPORTS_DIR, TABLES_DIR
+from health_mldl.config import ML_ARTIFACTS_DIR, RAW_DATA_DIR, ML_REPORTS_DIR, ML_TABLES_DIR
 from health_mldl.data.io import load_csv, save_csv
 from health_mldl.data.preprocess import basic_cleaning, split_xy
 from health_mldl.data.validation import summarize_missingness, validate_required_columns
 from health_mldl.evaluation.cv import run_regression_cv
 from health_mldl.evaluation.metrics import regression_metrics
 from health_mldl.features.build_features import add_simple_interactions
-from health_mldl.modeling.model_zoo import (
+from health_mldl.ml_core.model_zoo import (
     build_elastic_net_pipeline,
     build_gradient_boosting_pipeline,
     build_random_forest_pipeline,
 )
-from health_mldl.modeling.multimodal_stacking import build_multimodal_stacking_pipeline
+from health_mldl.ml_core.multimodal_stacking import build_multimodal_stacking_pipeline
 from health_mldl.utils.serialization import save_joblib, save_json
 
 
@@ -37,14 +37,14 @@ def main() -> None:
     raw_path = RAW_DATA_DIR / "synthetic_muscle_multimodal.csv"
     if not raw_path.exists():
         raise FileNotFoundError(
-            f"Dataset introuvable: {raw_path}. Lance d'abord generate_synthetic_dataset.py"
+            f"Dataset introuvable: {raw_path}. Lance d'abord tasks/ingest/generate_synthetic_dataset.py"
         )
 
     df = load_csv(raw_path)
     validate_required_columns(df)
 
     missingness = summarize_missingness(df)
-    missingness.to_csv(TABLES_DIR / "missingness_summary.csv", index=False)
+    missingness.to_csv(ML_TABLES_DIR / "missingness_summary.csv", index=False)
 
     clean_df = basic_cleaning(df)
     feat_df = add_simple_interactions(clean_df)
@@ -90,7 +90,7 @@ def main() -> None:
     )
 
     results_df = pd.DataFrame(benchmarks).sort_values("cv_rmse_mean")
-    results_path = TABLES_DIR / "benchmark_results.csv"
+    results_path = ML_TABLES_DIR / "benchmark_results.csv"
     results_path.parent.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(results_path, index=False)
 
@@ -104,13 +104,13 @@ def main() -> None:
     else:
         best_model = elastic
 
-    save_joblib(best_model, MODELS_DIR / "best_model.joblib")
+    save_joblib(best_model, ML_ARTIFACTS_DIR / "best_model.joblib")
     save_json(
         {
             "best_model": best_name,
             "ranking": results_df.to_dict(orient="records"),
         },
-        REPORTS_DIR / "benchmark_summary.json",
+        ML_REPORTS_DIR / "benchmark_summary.json",
     )
 
     print("Benchmark complete")

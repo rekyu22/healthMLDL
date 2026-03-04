@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from health_mldl.config import REPORTS_DIR, TABLES_DIR
+from health_mldl.config import ML_REPORTS_DIR, ML_TABLES_DIR
 
 
 def load_summary(path: Path) -> dict:
@@ -86,13 +86,13 @@ def main() -> None:
     parser.add_argument(
         "--reports-dir",
         type=str,
-        default=str(REPORTS_DIR),
+        default=str(ML_REPORTS_DIR),
         help="Folder containing benchmark_summary*.json files.",
     )
     parser.add_argument(
         "--out-dir",
         type=str,
-        default=str(TABLES_DIR),
+        default=str(ML_TABLES_DIR),
         help="Output folder for comparison CSV files.",
     )
     parser.add_argument(

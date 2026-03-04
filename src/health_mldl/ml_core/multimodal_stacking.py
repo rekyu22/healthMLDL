@@ -11,7 +11,7 @@ from sklearn.linear_model import ElasticNet
 from sklearn.pipeline import Pipeline
 
 from health_mldl.features.schema import MODALITY_BLOCKS
-from health_mldl.modeling.model_zoo import (
+from health_mldl.ml_core.model_zoo import (
     build_elastic_net_pipeline,
     build_gradient_boosting_pipeline,
     build_random_forest_pipeline,
