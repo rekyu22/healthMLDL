@@ -28,6 +28,8 @@ reports/tables/quality_report_*.json
 reports/tables/predictions_*.csv
 reports/tables/feature_importance_*.csv
 reports/tables/error_by_*.csv
+reports/tables/run_comparison.csv
+reports/tables/model_comparison.csv
 
 # Jupyter
 .ipynb_checkpoints/

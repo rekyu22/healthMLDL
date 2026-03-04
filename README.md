@@ -26,7 +26,8 @@ healthMLDL/
 │   ├── run_ml_baseline.py
 │   ├── run_multimodal_benchmark.py
 │   ├── train_from_dataset_id.py
-│   └── error_analysis_from_predictions.py
+│   ├── error_analysis_from_predictions.py
+│   └── compare_runs.py
 ├── src/health_mldl/
 │   ├── data/           # IO, nettoyage, split, validation
 │   ├── features/       # schema de colonnes + feature engineering
@@ -114,6 +115,12 @@ PYTHONPATH=src python scripts/train_from_dataset_id.py --dataset-id nhanes_2017 
 PYTHONPATH=src python scripts/error_analysis_from_predictions.py --dataset-id cohort_v1 --target-col muscle_deterioration_score
 ```
 
+8. Comparer automatiquement plusieurs runs
+
+```bash
+PYTHONPATH=src python scripts/compare_runs.py
+```
+
 ## Sorties principales
 
 - `data/processed/training_table.csv`
@@ -131,6 +138,8 @@ PYTHONPATH=src python scripts/error_analysis_from_predictions.py --dataset-id co
 - `reports/tables/error_by_sex_<dataset>__<target>.csv`
 - `reports/tables/error_by_age_bin_<dataset>__<target>.csv`
 - `reports/tables/error_by_bmi_bin_<dataset>__<target>.csv`
+- `reports/tables/run_comparison.csv`
+- `reports/tables/model_comparison.csv`
 - `reports/benchmark_summary.json`
 - `models/best_model.joblib`
 
